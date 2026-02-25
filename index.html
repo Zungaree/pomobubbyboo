@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PomoBubby – Focus & Flow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="sources/logo.ico"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-text">PomoBubby</span>
+      </div>
+      <div class="header-right">
+        <div class="session-counter">
+          Sessions: <span id="session-count">0</span>
+        </div>
+        <label class="theme-toggle">
+          <input type="checkbox" id="theme-toggle-checkbox" />
+          <span class="toggle-track">
+            <span class="toggle-thumb"></span>
+          </span>
+          <span class="toggle-label">Dark mode</span>
+        </label>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Pomodoro Timer -->
+      <section class="panel timer-panel">
+        <div class="panel-header">
+          <h2>Pomodoro Timer</h2>
+          <span id="timer-mode-label" class="timer-mode-label">Focus</span>
+        </div>
+        <div class="timer-display">
+          <div id="timer" class="timer-time">25:00</div>
+        </div>
+        <div class="timer-controls">
+          <button id="start-btn" class="btn primary">Start</button>
+          <button id="pause-btn" class="btn ghost">Pause</button>
+          <button id="reset-btn" class="btn ghost">Reset</button>
+        </div>
+        
+        <p class="timer-hint">
+          Spacebar: start / pause • Notifications & sound will play at the end of each session.
+        </p>
+        <div id="notification-hint" class="notification-hint" role="status" aria-live="polite" hidden>
+          <span class="notification-hint-text">Enable notifications to get a popup when the timer ends, even in another tab or app.</span>
+          <button type="button" id="notification-enable-btn" class="btn ghost small">Enable notifications</button>
+        </div>
+      </section>
+
+      <!-- Kanban Board -->
+      <section class="panel kanban-panel">
+        <div class="panel-header">
+          <h2>Tasks Board</h2>
+        </div>
+
+        <div class="task-input-row">
+          <select id="new-task-column">
+            <option value="todo">To Do</option>
+            <option value="doing">Doing</option>
+            <option value="done">Done</option>
+          </select>
+          <button id="add-task-btn" class="btn primary">Add</button>
+        </div>
+
+        <div class="kanban-columns">
+          <section class="kanban-column">
+            <h3>To Do</h3>
+            <div class="task-list" data-column="todo"></div>
+          </section>
+
+          <section class="kanban-column">
+            <h3>Doing</h3>
+            <div class="task-list" data-column="doing"></div>
+          </section>
+
+          <section class="kanban-column">
+            <h3>Done</h3>
+            <div class="task-list" data-column="done"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- Music Player -->
+      <section class="panel music-panel">
+        <div class="panel-header">
+          <h2>Background Music</h2>
+        </div>
+
+        <div class="music-url-row">
+          <input
+            type="text"
+            id="music-url-input"
+            placeholder="Paste a YouTube link for focus music"
+          />
+          <button id="load-music-btn" class="btn primary">Load</button>
+        </div>
+
+        <div id="player-container">
+          <div id="player" class="youtube-frame-placeholder">
+            <span class="player-placeholder-text">
+              Your YouTube player will appear here.
+            </span>
+          </div>
+        </div>
+
+        <div class="music-controls-row">
+          <button id="music-play-btn" class="btn ghost small">Play</button>
+          <button id="music-pause-btn" class="btn ghost small">Pause</button>
+          <label class="volume-label">
+            Volume
+            <input type="range" id="music-volume" min="0" max="100" value="60" />
+          </label>
+          <label class="loop-label">
+            <input type="checkbox" id="music-loop" />
+            Loop
+          </label>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="confetti-container"></div>
+
+  <!-- Notification permission popup: shown when permission is not granted -->
+  <div id="notification-permission-overlay" class="modal-overlay notification-permission-overlay" aria-hidden="true">
+    <div class="modal notification-permission-modal" role="dialog" aria-modal="true" aria-labelledby="notification-permission-title">
+      <div class="modal-header notification-permission-header">
+        <h3 id="notification-permission-title">Turn on notifications</h3>
+      </div>
+      <div class="modal-body">
+        <p class="notification-permission-message">
+          So PomoBubby can alert you when the timer ends — <strong>even when you're in another tab or app</strong>. You'll get a popup on your screen instead of only hearing the sound.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="notification-permission-dismiss" class="btn ghost">Not now</button>
+        <button type="button" id="notification-permission-enable" class="btn primary">Turn on notifications</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Modal -->
+  <div id="task-modal-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+      <div class="modal-header">
+        <h3 id="task-modal-title">Add New Task</h3>
+      </div>
+      <div class="modal-body">
+        <label class="modal-field">
+          <span class="modal-label">Task Name<span class="required-indicator">*</span></span>
+          <input
+            id="modal-task-title"
+            type="text"
+            class="modal-input"
+            placeholder="e.g. Write project summary"
+          />
+        </label>
+        <label class="modal-field">
+          <span class="modal-label">Task Description (optional)</span>
+          <textarea
+            id="modal-task-desc"
+            class="modal-textarea"
+            rows="3"
+            placeholder="Add a few details to remind future you."
+          ></textarea>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button id="modal-cancel-btn" class="btn ghost">Cancel</button>
+        <button id="modal-add-btn" class="btn primary">Add Task</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
